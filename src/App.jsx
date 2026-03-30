@@ -25,13 +25,13 @@ import {
 // あなたの Firebase 設定（適用済み）
 // ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyBQmc0Trzen3uNFMO4IjTd9OaLPmxdMBx4",
-  authDomain: "phone-memo-app-31241.firebaseapp.com",
-  projectId: "phone-memo-app-31241",
-  storageBucket: "phone-memo-app-31241.firebasestorage.app",
-  messagingSenderId: "264561665745",
-  appId: "1:264561665745:web:69885e19de0c95656147f0",
-  measurementId: "G-MKVQCN1M40"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // 初期化
