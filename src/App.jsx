@@ -31,12 +31,11 @@ import {
   AlertCircle,
   Hash,
   Send,
-  ChevronRight
+  ChevronRight,
+  Hash as HashIcon
 } from 'lucide-react';
 
 // --- Firebase Configuration ---
-// プレビュー環境での動作を優先し、直接値を設定しています。
-// ローカルの Vite 環境で .env.local を使う場合は、各値を import.meta.env.VITE_... に書き換えてください。
 const firebaseConfig = {
   apiKey: "AIzaSyBy-vvBCt7QknE9qOQO91B6dc_MCXMB0qU",
   authDomain: "phone-memo-app-31241.firebaseapp.com",
@@ -58,6 +57,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     who: '',
+    phone: '',
     from: '',
     to: '',
     content: ''
@@ -122,6 +122,7 @@ export default function App() {
   const formatMemoText = () => {
     return `【電話応対メモ】
 相手先: ${formData.who}
+電話番号: ${formData.phone || 'なし'}
 担当者: ${formData.from}
 宛先: ${formData.to}
 内容: ${formData.content}
@@ -152,7 +153,7 @@ export default function App() {
         createdAt: serverTimestamp()
       });
 
-      setFormData({ who: '', from: '', to: '', content: '' });
+      setFormData({ who: '', phone: '', from: '', to: '', content: '' });
       showNotification(shouldCopy ? 'コピーして保存しました' : '保存しました');
     } catch (error) {
       showNotification('保存に失敗しました。権限設定を確認してください。', 'error');
@@ -193,7 +194,6 @@ export default function App() {
             onClick={login}
             className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-100 text-slate-700 py-4 px-6 rounded-2xl hover:border-indigo-600 hover:text-indigo-600 transition-all font-bold shadow-sm active:scale-95"
           >
-            {/* Google Logo SVG */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -213,7 +213,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
-      {/* Modern Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-default">
@@ -262,6 +261,20 @@ export default function App() {
                       onChange={handleInputChange}
                       className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-300 font-bold text-sm"
                       placeholder="株式会社〇〇 山田様"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-[0.2em] ml-1">電話番号</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                    <input 
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-300 font-bold text-sm"
+                      placeholder="090-0000-0000"
                     />
                   </div>
                 </div>
@@ -351,10 +364,18 @@ export default function App() {
                         </div>
                         <div>
                           <h3 className="font-black text-slate-800 leading-tight">{memo.who}</h3>
-                          <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-0.5 uppercase tracking-tighter">
-                            <Clock size={10} />
-                            {memo.createdAt?.toDate().toLocaleString('ja-JP')}
-                          </p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase tracking-tighter">
+                              <Clock size={10} />
+                              {memo.createdAt?.toDate().toLocaleString('ja-JP')}
+                            </p>
+                            {memo.phone && (
+                              <p className="text-[10px] font-bold text-indigo-500 flex items-center gap-1 uppercase tracking-tighter">
+                                <Phone size={10} />
+                                {memo.phone}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <button 
