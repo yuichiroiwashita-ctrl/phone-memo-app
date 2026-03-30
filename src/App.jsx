@@ -32,7 +32,7 @@ import {
   Hash,
   Send,
   ChevronRight,
-  Hash as HashIcon
+  Copy
 } from 'lucide-react';
 
 // --- Firebase Configuration ---
@@ -119,14 +119,24 @@ export default function App() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const formatMemoText = () => {
+  // クリップボードへのコピー（iFrame環境での汎用的な手法）
+  const copyTextToClipboard = (text) => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
+  const formatMemoText = (data) => {
     return `【電話応対メモ】
-相手先: ${formData.who}
-電話番号: ${formData.phone || 'なし'}
-担当者: ${formData.from}
-宛先: ${formData.to}
-内容: ${formData.content}
-受信者: ${user.displayName}`;
+相手先: ${data.who}
+電話番号: ${data.phone || 'なし'}
+担当者: ${data.from || 'なし'}
+宛先: ${data.to || 'なし'}
+内容: ${data.content}
+受信者: ${data.receiver || user.displayName}`;
   };
 
   const saveMemo = async (shouldCopy = false) => {
@@ -137,13 +147,7 @@ export default function App() {
 
     try {
       if (shouldCopy) {
-        const text = formatMemoText();
-        const el = document.createElement('textarea');
-        el.value = text;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
+        copyTextToClipboard(formatMemoText(formData));
       }
 
       const memosRef = collection(db, 'artifacts', appId, 'users', user.uid, 'memos');
@@ -158,6 +162,11 @@ export default function App() {
     } catch (error) {
       showNotification('保存に失敗しました。権限設定を確認してください。', 'error');
     }
+  };
+
+  const handleCopyMemo = (memo) => {
+    copyTextToClipboard(formatMemoText(memo));
+    showNotification('クリップボードにコピーしました');
   };
 
   const deleteMemo = async (id) => {
@@ -378,13 +387,22 @@ export default function App() {
                           </div>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => deleteMemo(memo.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        title="削除"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => handleCopyMemo(memo)}
+                          className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          title="コピー"
+                        >
+                          <Copy size={16} />
+                        </button>
+                        <button 
+                          onClick={() => deleteMemo(memo.id)}
+                          className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="削除"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="bg-slate-50/50 rounded-xl p-4 text-slate-700 font-bold text-sm leading-relaxed whitespace-pre-wrap border border-slate-50">
