@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const TALKNOTE_EMAIL = 'g-21923-715880@mail.talknote.com';
 
@@ -50,10 +50,16 @@ export default async function handler(req, res) {
     const formattedBody = aiResponse.choices[0].message.content;
     const subject = `【電話メモ】${memo.who}${memo.to ? ` → ${memo.to}` : ''}`;
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
 
-    await resend.emails.send({
-      from: 'Memo Cloud <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: `"Memo Cloud" <${process.env.MAIL_USER}>`,
       to: TALKNOTE_EMAIL,
       subject,
       text: formattedBody,
