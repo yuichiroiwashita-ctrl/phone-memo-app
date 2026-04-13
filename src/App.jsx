@@ -1,38 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  signOut 
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut
 } from 'firebase/auth';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp 
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  serverTimestamp
 } from 'firebase/firestore';
-import { 
-  Phone, 
-  User, 
-  Clipboard, 
-  Save, 
-  LogOut, 
-  Trash2, 
-  Plus, 
+import {
+  Phone,
+  User,
+  Clipboard,
+  Save,
+  LogOut,
+  Trash2,
+  Plus,
   Clock,
   CheckCircle2,
   AlertCircle,
   Hash,
   Send,
   ChevronRight,
-  Copy
+  Copy,
+  Bell
 } from 'lucide-react';
 
 // --- Firebase Configuration ---
@@ -63,6 +64,7 @@ export default function App() {
     content: ''
   });
   const [notification, setNotification] = useState(null);
+  const [sendingMemoId, setSendingMemoId] = useState(null);
 
   // 認証状態の監視
   useEffect(() => {
@@ -167,6 +169,25 @@ export default function App() {
   const handleCopyMemo = (memo) => {
     copyTextToClipboard(formatMemoText(memo));
     showNotification('クリップボードにコピーしました');
+  };
+
+  const handleTalknoteNotify = async (memo) => {
+    if (sendingMemoId) return;
+    setSendingMemoId(memo.id);
+    try {
+      const res = await fetch('/api/send-talknote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memo }),
+      });
+      if (!res.ok) throw new Error('送信失敗');
+      showNotification('Talknoteに通知しました');
+    } catch (error) {
+      console.error(error);
+      showNotification('Talknote通知に失敗しました', 'error');
+    } finally {
+      setSendingMemoId(null);
+    }
   };
 
   const deleteMemo = async (id) => {
@@ -388,14 +409,26 @@ export default function App() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button 
+                        <button
+                          onClick={() => handleTalknoteNotify(memo)}
+                          disabled={sendingMemoId === memo.id}
+                          className="p-2 text-slate-300 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Talknoteに通知"
+                        >
+                          {sendingMemoId === memo.id ? (
+                            <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Bell size={16} />
+                          )}
+                        </button>
+                        <button
                           onClick={() => handleCopyMemo(memo)}
                           className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                           title="コピー"
                         >
                           <Copy size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => deleteMemo(memo.id)}
                           className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           title="削除"
