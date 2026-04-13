@@ -1,9 +1,9 @@
-const OpenAI = require('openai');
-const { Resend } = require('resend');
+import OpenAI from 'openai';
+import { Resend } from 'resend';
 
 const TALKNOTE_EMAIL = 'g-21923-715880@mail.talknote.com';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -22,7 +22,6 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // OpenAI でメール本文を整形
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const aiResponse = await openai.chat.completions.create({
@@ -51,7 +50,6 @@ module.exports = async function handler(req, res) {
     const formattedBody = aiResponse.choices[0].message.content;
     const subject = `【電話メモ】${memo.who}${memo.to ? ` → ${memo.to}` : ''}`;
 
-    // Resend でメール送信
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
@@ -66,4 +64,4 @@ module.exports = async function handler(req, res) {
     console.error(error);
     return res.status(500).json({ error: '送信に失敗しました' });
   }
-};
+}
