@@ -34,6 +34,8 @@ import {
   ArrowRight,
   PhoneIncoming,
   FileText,
+  CalendarSearch,
+  X,
 } from 'lucide-react';
 
 const firebaseConfig = {
@@ -73,6 +75,7 @@ export default function App() {
   const [formData, setFormData] = useState({ who: '', phone: '', from: '', to: '', content: '' });
   const [notification, setNotification] = useState(null);
   const [sendingMemoId, setSendingMemoId] = useState(null);
+  const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setLoading(false); });
@@ -167,6 +170,18 @@ export default function App() {
       showNotification('削除に失敗しました', 'error');
     }
   };
+
+  const filteredMemos = filterDate
+    ? memos.filter(m => {
+        if (!m.createdAt) return false;
+        const d = m.createdAt.toDate();
+        return (
+          d.getFullYear() === parseInt(filterDate.slice(0, 4)) &&
+          d.getMonth() + 1 === parseInt(filterDate.slice(5, 7)) &&
+          d.getDate() === parseInt(filterDate.slice(8, 10))
+        );
+      })
+    : memos;
 
   if (loading) {
     return (
@@ -339,27 +354,56 @@ export default function App() {
 
           {/* History */}
           <div className="lg:col-span-7">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2.5">
                 <Clock size={18} className="text-indigo-600" />
                 <h2 className="font-bold text-slate-800">受電履歴</h2>
+                <span className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-full">
+                  {filteredMemos.length}{filterDate ? `/${memos.length}` : ''} 件
+                </span>
               </div>
-              <span className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-full">
-                {memos.length} 件
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <CalendarSearch size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={filterDate}
+                    onChange={e => setFilterDate(e.target.value)}
+                    className="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition-all text-slate-700"
+                  />
+                </div>
+                {filterDate && (
+                  <button
+                    onClick={() => setFilterDate('')}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                    title="フィルターを解除"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
-              {memos.length === 0 ? (
+              {filteredMemos.length === 0 ? (
                 <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl py-16 text-center">
                   <div className="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <FileText size={22} className="text-slate-300" />
                   </div>
-                  <p className="text-slate-400 font-medium text-sm">メモはまだありません</p>
-                  <p className="text-slate-300 text-xs mt-1">左のフォームから記録を追加してください</p>
+                  {filterDate ? (
+                    <>
+                      <p className="text-slate-400 font-medium text-sm">この日付のメモはありません</p>
+                      <p className="text-slate-300 text-xs mt-1">{new Date(filterDate).toLocaleDateString('ja-JP')} の記録が見つかりませんでした</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-slate-400 font-medium text-sm">メモはまだありません</p>
+                      <p className="text-slate-300 text-xs mt-1">左のフォームから記録を追加してください</p>
+                    </>
+                  )}
                 </div>
               ) : (
-                memos.map(memo => (
+                filteredMemos.map(memo => (
                   <MemoCard
                     key={memo.id}
                     memo={memo}
