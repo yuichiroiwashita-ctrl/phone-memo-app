@@ -1,0 +1,23 @@
+name: PR Review
+
+# full-auto ティア用テンプレート。
+# コピー先: 各リポジトリの .github/workflows/pr-review.yml
+# 事前準備: リポジトリに Secrets `CLAUDE_CODE_OAUTH_TOKEN` を設定し、
+#           リポジトリ設定で "Allow auto-merge" を有効化しておくこと。
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  review:
+    permissions:
+      contents: write # approve後のauto-mergeに必要
+      pull-requests: write # レビューコメント・approve投稿に必要
+    # SHA固定(main HEAD: 6163bbea8f49245f9b926b2cb4e347f7081bab69)。
+    # 更新時は README の「reusable workflow の更新」手順に従ってSHAを差し替えること。
+    uses: yuichiroiwashita-ctrl/gha-shared-workflows/.github/workflows/claude-pr-review.yml@6163bbea8f49245f9b926b2cb4e347f7081bab69
+    with:
+      auto_merge: true
+    secrets:
+      claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
